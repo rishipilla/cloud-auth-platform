@@ -1,0 +1,30 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: auth-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: authdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - auth_postgres_data:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    ports:
+      - "8011:8001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/authdb
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - postgres
+
+volumes:
+  auth_postgres_data:
